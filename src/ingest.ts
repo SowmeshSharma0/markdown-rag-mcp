@@ -3,14 +3,17 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { config } from "dotenv";
-import { QdrantService } from "./services/qdrant.js";
+import { Chunk, QdrantService } from "./services/qdrant.js";
 import { EmbeddingService } from "./services/embeddings.js";
+import { COLLECTION_NAME, DEFAULT_QDRANT_URL, EMBEDDING_DIMENSIONS } from "./constants.js";
 
 config();
 
+
+
 // Simple chunking by heading or size
 function chunkMarkdown(content: string, filename: string, chunkSize: number = 1000) {
-  const chunks: Array<{ content: string; filename: string; heading?: string }> = [];
+  const chunks: Chunk[] = [];
   const lines = content.split("\n");
   
   let currentChunk = "";
@@ -70,9 +73,9 @@ Usage:
     process.exit(1);
   }
 
-  const qdrantUrl = process.env.QDRANT_URL || "http://localhost:6333";
+  const qdrantUrl = process.env.QDRANT_URL || DEFAULT_QDRANT_URL;
 
-  const qdrant = new QdrantService(qdrantUrl, "markdown_docs", 384);
+  const qdrant = new QdrantService(qdrantUrl, COLLECTION_NAME, EMBEDDING_DIMENSIONS);
   const embeddings = new EmbeddingService();
 
   await embeddings.initialize();

@@ -1,4 +1,5 @@
 import { pipeline, env } from "@xenova/transformers";
+import { DEFAULT_EMBEDDING_MODEL, EMBEDDING_DIMENSIONS } from "../constants";
 
 // Disable remote models, use only cached
 env.allowRemoteModels = true;
@@ -6,13 +7,13 @@ env.allowLocalModels = true;
 
 export class EmbeddingService {
   private extractor: any = null;
-  private readonly modelName = "Xenova/all-MiniLM-L6-v2";
-  private readonly dimensions = 384;
+  private readonly modelName = DEFAULT_EMBEDDING_MODEL;
+  private readonly dimensions = EMBEDDING_DIMENSIONS;
 
   async initialize(): Promise<void> {
     if (this.extractor) return;
 
-    console.log("🔮 Loading all-MiniLM-L6-v2 embedding model...");
+    console.log(`🔮 Loading ${this.modelName} embedding model...`);
     console.log("   (First run will download ~90MB model)");
     
     this.extractor = await pipeline(

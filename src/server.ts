@@ -5,6 +5,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { randomUUID } from "node:crypto";
 import { QdrantService } from "./services/qdrant.js";
 import { EmbeddingService } from "./services/embeddings.js";
+import { COLLECTION_NAME, EMBEDDING_DIMENSIONS } from "./constants.js";
 
 export class MarkdownRAGServer {
   private server: McpServer;
@@ -13,7 +14,7 @@ export class MarkdownRAGServer {
   private transports: Record<string, StreamableHTTPServerTransport> = {};
 
   constructor(qdrantUrl: string) {
-    this.qdrant = new QdrantService(qdrantUrl, "markdown_docs", 384);
+    this.qdrant = new QdrantService(qdrantUrl, COLLECTION_NAME, EMBEDDING_DIMENSIONS);
     this.embeddings = new EmbeddingService();
 
     this.server = new McpServer(

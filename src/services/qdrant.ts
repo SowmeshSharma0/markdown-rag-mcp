@@ -1,5 +1,6 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { v4 as uuidv4 } from "uuid";
+import { COLLECTION_NAME, DEFAULT_DISTANCE_METRIC, EMBEDDING_DIMENSIONS } from "../constants";
 
 export interface Chunk {
   id?: string;
@@ -20,7 +21,7 @@ export class QdrantService {
   private collectionName: string;
   private dimensions: number;
 
-  constructor(url: string, collectionName: string = "markdown_docs", dimensions: number = 384) {
+  constructor(url: string, collectionName: string = COLLECTION_NAME, dimensions: number = EMBEDDING_DIMENSIONS) {
     this.client = new QdrantClient({ url });
     this.collectionName = collectionName;
     this.dimensions = dimensions;
@@ -37,7 +38,7 @@ export class QdrantService {
         await this.client.createCollection(this.collectionName, {
           vectors: {
             size: this.dimensions, // 384 for all-MiniLM-L6-v2
-            distance: "Cosine",
+            distance: DEFAULT_DISTANCE_METRIC,
           },
         });
         console.log(`✅ Created collection: ${this.collectionName} (${this.dimensions}D)`);
