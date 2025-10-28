@@ -5,7 +5,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { randomUUID } from "node:crypto";
 import { QdrantService } from "./services/qdrant.js";
 import { EmbeddingService } from "./services/embeddings.js";
-import { COLLECTION_NAME, EMBEDDING_DIMENSIONS } from "./constants.js";
+import { COLLECTION_NAME, EMBEDDING_DIMENSIONS, SERVER_NAME, SERVER_VERSION } from "./constants.js";
 
 export class MarkdownRAGServer {
   private server: McpServer;
@@ -19,8 +19,8 @@ export class MarkdownRAGServer {
 
     this.server = new McpServer(
       {
-        name: "Markdown RAG Server",
-        version: "1.0.0",
+        name: SERVER_NAME,
+        version: SERVER_VERSION,
       },
       {
         capabilities: {
