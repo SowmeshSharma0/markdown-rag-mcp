@@ -3,13 +3,11 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { config } from "dotenv";
-import { Chunk, QdrantService } from "./services/qdrant.js";
+import { Chunk, ChromaDBService } from "./services/chromadb.js";
 import { EmbeddingService } from "./services/embeddings.js";
-import { COLLECTION_NAME, DEFAULT_QDRANT_URL, EMBEDDING_DIMENSIONS } from "./constants.js";
+import { COLLECTION_NAME } from "./constants.js";
 
 config();
-
-
 
 // Simple chunking by heading or size
 function chunkMarkdown(content: string, filename: string, chunkSize: number = 1000) {
@@ -73,13 +71,11 @@ Usage:
     process.exit(1);
   }
 
-  const qdrantUrl = process.env.QDRANT_URL || DEFAULT_QDRANT_URL;
-
-  const qdrant = new QdrantService(qdrantUrl, COLLECTION_NAME, EMBEDDING_DIMENSIONS);
+  const chromadb = new ChromaDBService(COLLECTION_NAME);
   const embeddings = new EmbeddingService();
 
   await embeddings.initialize();
-  await qdrant.initialize();
+  await chromadb.initialize();
 
   if (command === "add" && filePath) {
     const absolutePath = resolve(process.cwd(), filePath);
@@ -96,12 +92,12 @@ Usage:
       chunks.map((c) => c.content)
     );
 
-    console.log(`💾 Storing in Qdrant...`);
-    await qdrant.upsertChunks(chunks, embeddingVectors);
+    console.log(`💾 Storing in ChromaDB...`);
+    await chromadb.upsertChunks(chunks, embeddingVectors);
 
     console.log(`✅ Successfully ingested ${filename}`);
   } else if (command === "delete" && filePath) {
-    await qdrant.deleteByFilename(filePath);
+    await chromadb.deleteByFilename(filePath);
   } else {
     console.error("❌ Invalid command");
     process.exit(1);

@@ -1,45 +1,42 @@
-import { pipeline, env } from "@xenova/transformers";
-import { DEFAULT_EMBEDDING_MODEL, EMBEDDING_DIMENSIONS } from "../constants";
-
-// Disable remote models, use only cached
-env.allowRemoteModels = true;
-env.allowLocalModels = true;
+import { Ollama } from "ollama";
+import { DEFAULT_EMBEDDING_MODEL, EMBEDDING_DIMENSIONS, DEFAULT_OLLAMA_URL } from "../constants";
 
 export class EmbeddingService {
-  private extractor: any = null;
+  private ollama: Ollama;
   private readonly modelName = DEFAULT_EMBEDDING_MODEL;
   private readonly dimensions = EMBEDDING_DIMENSIONS;
 
-  async initialize(): Promise<void> {
-    if (this.extractor) return;
+  constructor() {
+    const ollamaUrl = process.env.OLLAMA_URL || DEFAULT_OLLAMA_URL;
+    this.ollama = new Ollama({ host: ollamaUrl });
+  }
 
-    console.log(`🔮 Loading ${this.modelName} embedding model...`);
-    console.log("   (First run will download ~90MB model)");
+  async initialize(): Promise<void> {
+    console.log(`🔮 Checking ${this.modelName} embedding model...`);
     
-    this.extractor = await pipeline(
-      "feature-extraction",
-      this.modelName
-    );
-    
-    console.log("✅ Embedding model loaded");
+    try {
+      // Test the model is available
+      await this.ollama.embeddings({
+        model: this.modelName,
+        prompt: "test",
+      });
+      console.log("✅ Embedding model ready");
+    } catch (error) {
+      console.error(`❌ Error: Model ${this.modelName} not available in Ollama`);
+      console.log(`   Run: ollama pull ${this.modelName}`);
+      throw error;
+    }
   }
 
   async embed(texts: string[]): Promise<number[][]> {
-    if (!this.extractor) {
-      await this.initialize();
-    }
-
     const embeddings: number[][] = [];
     
     for (const text of texts) {
-      const output = await this.extractor(text, {
-        pooling: "mean",
-        normalize: true,
+      const response = await this.ollama.embeddings({
+        model: this.modelName,
+        prompt: text,
       });
-      
-      // Convert tensor to array
-      const embedding = Array.from(output.data as Float32Array) as number[];
-      embeddings.push(embedding);
+      embeddings.push(response.embedding);
     }
     
     return embeddings;

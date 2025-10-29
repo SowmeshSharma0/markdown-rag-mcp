@@ -3,18 +3,18 @@ import { z } from "zod";
 import express, { Request, Response } from "express";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { randomUUID } from "node:crypto";
-import { QdrantService } from "./services/qdrant.js";
+import { ChromaDBService } from "./services/chromadb.js";
 import { EmbeddingService } from "./services/embeddings.js";
-import { COLLECTION_NAME, EMBEDDING_DIMENSIONS, SERVER_NAME, SERVER_VERSION } from "./constants.js";
+import { COLLECTION_NAME, SERVER_NAME, SERVER_VERSION } from "./constants.js";
 
 export class MarkdownRAGServer {
   private server: McpServer;
-  private qdrant: QdrantService;
+  private chromadb: ChromaDBService;
   private embeddings: EmbeddingService;
   private transports: Record<string, StreamableHTTPServerTransport> = {};
 
-  constructor(qdrantUrl: string) {
-    this.qdrant = new QdrantService(qdrantUrl, COLLECTION_NAME, EMBEDDING_DIMENSIONS);
+  constructor() {
+    this.chromadb = new ChromaDBService(COLLECTION_NAME);
     this.embeddings = new EmbeddingService();
 
     this.server = new McpServer(
@@ -46,7 +46,7 @@ export class MarkdownRAGServer {
           console.log(`🔍 Searching for: ${query}`);
 
           const queryEmbedding = await this.embeddings.embedQuery(query);
-          const results = await this.qdrant.search(queryEmbedding, limit);
+          const results = await this.chromadb.search(queryEmbedding, limit);
 
           const formattedResults = results.map((r, idx) => ({
             rank: idx + 1,
@@ -85,7 +85,7 @@ export class MarkdownRAGServer {
 
     console.log("🔮 Initializing embedding model...");
     await this.embeddings.initialize();
-    await this.qdrant.initialize();
+    await this.chromadb.initialize();
 
     app.use("/mcp", express.json());
 
@@ -117,6 +117,7 @@ export class MarkdownRAGServer {
       console.log(`🚀 MCP Server running on port ${port}`);
       console.log(`🔌 Endpoint: http://localhost:${port}/mcp`);
       console.log(`📚 Model: all-MiniLM-L6-v2 (384 dimensions)`);
+      console.log(`🗄️  ChromaDB: http://localhost:8000`);
     });
   }
 }
