@@ -35,3 +35,7 @@ Thumbs.db
 
 # Testing
 coverage
+
+qdrant_data
+ollama_data
+sampleInputs

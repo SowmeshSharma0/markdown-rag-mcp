@@ -3,18 +3,18 @@ import { z } from "zod";
 import express, { Request, Response } from "express";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { randomUUID } from "node:crypto";
-import { ChromaDBService } from "./services/chromadb.js";
+import { QdrantService } from "./services/qdrant.js";
 import { EmbeddingService } from "./services/embeddings.js";
-import { COLLECTION_NAME, SERVER_NAME, SERVER_VERSION } from "./constants.js";
+import { COLLECTION_NAME, SERVER_NAME, SERVER_VERSION, DEFAULT_QDRANT_URL } from "./constants.js";
 
 export class MarkdownRAGServer {
   private server: McpServer;
-  private chromadb: ChromaDBService;
+  private qdrant: QdrantService;
   private embeddings: EmbeddingService;
   private transports: Record<string, StreamableHTTPServerTransport> = {};
 
   constructor() {
-    this.chromadb = new ChromaDBService(COLLECTION_NAME);
+    this.qdrant = new QdrantService(COLLECTION_NAME);
     this.embeddings = new EmbeddingService();
 
     this.server = new McpServer(
@@ -46,7 +46,7 @@ export class MarkdownRAGServer {
           console.log(`🔍 Searching for: ${query}`);
 
           const queryEmbedding = await this.embeddings.embedQuery(query);
-          const results = await this.chromadb.search(queryEmbedding, limit);
+          const results = await this.qdrant.search(queryEmbedding, limit);
 
           const formattedResults = results.map((r, idx) => ({
             rank: idx + 1,
@@ -85,7 +85,7 @@ export class MarkdownRAGServer {
 
     console.log("🔮 Initializing embedding model...");
     await this.embeddings.initialize();
-    await this.chromadb.initialize();
+    await this.qdrant.initialize();
 
     app.use("/mcp", express.json());
 
@@ -113,11 +113,12 @@ export class MarkdownRAGServer {
       await transport.handleRequest(req, res, req.body);
     });
 
+    const qdrantUrl = process.env.QDRANT_URL || DEFAULT_QDRANT_URL;
     app.listen(port, () => {
       console.log(`🚀 MCP Server running on port ${port}`);
       console.log(`🔌 Endpoint: http://localhost:${port}/mcp`);
-      console.log(`📚 Model: all-MiniLM-L6-v2 (384 dimensions)`);
-      console.log(`🗄️  ChromaDB: http://localhost:8000`);
+      console.log(`📚 Model: nomic-embed-text (768 dimensions)`);
+      console.log(`🗄️  Qdrant: ${qdrantUrl}`);
     });
   }
 }

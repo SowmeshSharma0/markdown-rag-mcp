@@ -3,7 +3,7 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { config } from "dotenv";
-import { Chunk, ChromaDBService } from "./services/chromadb.js";
+import { Chunk, QdrantService } from "./services/qdrant.js";
 import { EmbeddingService } from "./services/embeddings.js";
 import { COLLECTION_NAME } from "./constants.js";
 
@@ -71,11 +71,11 @@ Usage:
     process.exit(1);
   }
 
-  const chromadb = new ChromaDBService(COLLECTION_NAME);
+  const qdrant = new QdrantService(COLLECTION_NAME);
   const embeddings = new EmbeddingService();
 
   await embeddings.initialize();
-  await chromadb.initialize();
+  await qdrant.initialize();
 
   if (command === "add" && filePath) {
     const absolutePath = resolve(process.cwd(), filePath);
@@ -92,12 +92,12 @@ Usage:
       chunks.map((c) => c.content)
     );
 
-    console.log(`💾 Storing in ChromaDB...`);
-    await chromadb.upsertChunks(chunks, embeddingVectors);
+    console.log(`💾 Storing in Qdrant...`);
+    await qdrant.upsertChunks(chunks, embeddingVectors);
 
     console.log(`✅ Successfully ingested ${filename}`);
   } else if (command === "delete" && filePath) {
-    await chromadb.deleteByFilename(filePath);
+    await qdrant.deleteByFilename(filePath);
   } else {
     console.error("❌ Invalid command");
     process.exit(1);
