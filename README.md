@@ -79,14 +79,32 @@ This will install all required packages including:
 pnpm run docker:up
 ```
 
+or
+```bash
+pnpm run docker:reset
+```
+
+
 This command will:
 - Start Qdrant vector database (on ports 6333, 6334)
 - Start Ollama embedding service (on port 11434)
-- Automatically pull the `nomic-embed-text` model
 
-**⏳ Wait 1-2 minutes** for services to initialize and the model (2GB) to download.
+**⏳ Wait 1-2 minutes** for services to initialize.
 
-### 4. Verify Docker Services are Running
+### 4. Setup Ollama Model
+After Docker services are running, pull and setup the embedding model:
+```bash
+pnpm run docker:setup-model
+```
+
+This will download the `nomic-embed-text` model (2GB). This step is required after:
+- First time setup
+- Running `pnpm run docker:reset`
+- Running `pnpm run docker:up` on a fresh environment
+
+**💡 ProTip:** Disable Cato VPN or any corporate VPN before running this command. Dont worry abt the error at the end.
+
+### 5. Verify Docker Services are Running
 ```bash
 # Check Qdrant is running
 pnpm run docker:check-qdrant
@@ -98,17 +116,31 @@ pnpm run docker:check-ollama
 pnpm run docker:logs
 ```
 
-### 5. Build the TypeScript Project
+### 6. Build the TypeScript Project
 ```bash
 pnpm run build
 ```
 
 This compiles the TypeScript code to JavaScript in the `dist/` folder.
 
-### 6. Ingest Sample Documents - on which you want to ask questions
+### 7. Ingest Sample Documents - on which you want to ask questions
 If you have markdown files to ingest:
 ```bash
-pnpm run ingest
+pnpm run ingest add <pathName>
+```
+
+Example:
+```bash
+# Ingest a single markdown file
+pnpm run ingest add ./sampleInputs/web_README.md
+
+# Or with a relative path
+pnpm run ingest add path/to/your/document.md
+```
+
+To delete a document:
+```bash
+pnpm run ingest delete <filename>
 ```
 
 ---
@@ -184,6 +216,8 @@ In Cursor, you should now have access to the MCP tools. You can verify by:
 5. **Rebuild After Changes**: Run `pnpm run build` after code changes. If you modify `docker-compose.yml`, restart containers with `pnpm run docker:restart`. Then restart Cursor completely (Cmd+Q).
 
 6. **Be Patient on First Setup**: Initial setup takes 3-5 minutes to download images and models. Don't interrupt.
+
+7. **Manually remove containers in case of issues**: If `pnpm docker:down` / `pnpm docker:reset` doesnt work as intended goto rancher, stop and delete the containers manually.
 
 ---
 
