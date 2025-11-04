@@ -163,32 +163,33 @@ Add this configuration to your `mcp.json` file (create it if it doesn't exist):
 {
   "mcpServers": {
     "markdown-rag": {
-      "command": "node",
-      "args": [
-        "/absolute/path/to/your/markdown-rag-mcp/dist/index.js"
-      ],
-      "env": {
-        "PORT": "3000",
-        "QDRANT_URL": "http://localhost:6333",
-        "OLLAMA_URL": "http://localhost:11434"
-      }
+      "url": "http://localhost:3000/mcp"
     }
   }
 }
 ```
 
-**⚠️ Important:** Replace `/absolute/path/to/your/markdown-rag-mcp` with your actual project path.
 
-To get your absolute path, run:
+**Note:** This configuration assumes:
+- The MCP server is running on port 3000 (default)
+- Docker services (Qdrant and Ollama) are already running
+
+
+### 3. Start the MCP Server
+
+Before connecting Cursor, make sure to start the MCP server:
 ```bash
-pwd
-# Example output: /Users/yourusername/Desktop/Workspace/markdown-rag-mcp
+# Make sure Docker services are running first
+pnpm run docker:up
+pnpm run docker:setup-model
+
+# Build and start the MCP server
+pnpm run build
+pnpm start
 ```
 
-### 3. Restart Cursor
-1. Quit Cursor completely (`Cmd + Q`)
-2. Reopen Cursor
-3. The MCP server should now be available
+The server will run at `http://localhost:3000/mcp` and must be kept running while using Cursor.
+
 
 ### 4. Verify MCP Connection
 
