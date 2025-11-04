@@ -6,6 +6,12 @@ import { randomUUID } from "node:crypto";
 import { QdrantService } from "./services/qdrant.js";
 import { EmbeddingService } from "./services/embeddings.js";
 import { COLLECTION_NAME, SERVER_NAME, SERVER_VERSION, DEFAULT_QDRANT_URL } from "./constants.js";
+import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+
+export const Logger = {
+  log: (...args: any[]) => {},
+  error: (...args: any[]) => {},
+};
 
 export class MarkdownRAGServer {
   private server: McpServer;
@@ -80,6 +86,26 @@ export class MarkdownRAGServer {
     );
   }
 
+  async connect(transport: Transport): Promise<void> {
+    // Logger.log("Connecting to transport...");
+    await this.server.connect(transport);
+
+    Logger.log = (...args: any[]) => {
+      this.server.server.sendLoggingMessage({
+        level: "info",
+        data: args,
+      });
+    };
+    Logger.error = (...args: any[]) => {
+      this.server.server.sendLoggingMessage({
+        level: "error",
+        data: args,
+      });
+    };
+
+    Logger.log("Server connected and ready to process requests");
+  }
+
   async startHttpServer(port: number): Promise<void> {
     const app = express();
 
@@ -112,6 +138,31 @@ export class MarkdownRAGServer {
 
       await transport.handleRequest(req, res, req.body);
     });
+
+    // Handle GET requests for SSE streams
+    const handleSessionRequest = async (req: Request, res: Response) => {
+      const sessionId = req.headers["mcp-session-id"] as string | undefined;
+      if (!sessionId || !this.transports[sessionId]) {
+        res.status(400).send("Invalid or missing session ID");
+        return;
+      }
+      console.log(`Received session request for session ${sessionId}`);
+      try {
+        const transport = this.transports[sessionId];
+        await transport.handleRequest(req, res);
+      } catch (error) {
+        console.error("Error handling session request:", error);
+        if (!res.headersSent) {
+          res.status(500).send("Error processing session request");
+        }
+      }
+    };
+
+    // Handle GET requests for server-to-client notifications via SSE
+    app.get("/mcp", handleSessionRequest);
+
+    // Handle DELETE requests for session termination
+    app.delete("/mcp", handleSessionRequest);
 
     const qdrantUrl = process.env.QDRANT_URL || DEFAULT_QDRANT_URL;
     app.listen(port, () => {
