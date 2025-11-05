@@ -78,12 +78,25 @@ export class QdrantService {
     console.log(`✅ Upserted ${chunks.length} chunks`);
   }
 
-  async search(queryEmbedding: number[], limit: number = 5): Promise<SearchResult[]> {
-    const searchResult = await this.client.search(this.collectionName, {
+  async search(queryEmbedding: number[], limit: number = 5, repoName?: string): Promise<SearchResult[]> {
+    const searchParams: any = {
       vector: queryEmbedding,
       limit,
       with_payload: true,
-    });
+    };
+
+    if(repoName){
+      searchParams.filter = {
+        must: [
+          {
+            key: "repoName",
+            match: { value: repoName },
+          },
+        ],
+      };
+    }
+
+    const searchResult = await this.client.search(this.collectionName, searchParams);
 
     return searchResult.map((result) => ({
       content: (result.payload?.content as string) || "",

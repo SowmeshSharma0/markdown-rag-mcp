@@ -46,13 +46,14 @@ export class MarkdownRAGServer {
       {
         query: z.string().describe("The question or search query"),
         limit: z.number().optional().default(5).describe("Number of results (default: 5)"),
+        repository: z.string().optional().describe("The repository to search in"),
       },
-      async ({ query, limit }) => {
+      async ({ query, limit, repository }) => {
         try {
           console.log(`🔍 Searching for: ${query}`);
 
           const queryEmbedding = await this.embeddings.embedQuery(query);
-          const results = await this.qdrant.search(queryEmbedding, limit);
+          const results = await this.qdrant.search(queryEmbedding, limit, repository);
 
           const formattedResults = results.map((r, idx) => ({
             rank: idx + 1,
