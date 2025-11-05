@@ -21,7 +21,7 @@ export async function chunkMarkdown(content: string, filename: string, repoName:
     const chunkText = doc.pageContent;
     
     // Check if this chunk has a heading
-    const headingMatch = chunkText.match(/^#{1,6}\s+(.+?)$/m);
+    const headingMatch = chunkText.match(/^(#{1,6})\s+(.+?)$/m);
     
     if (headingMatch) {
       const level = headingMatch[1].length;
