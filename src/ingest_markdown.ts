@@ -2,7 +2,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { Chunk } from "./services/qdrant";
 
 // Simple markdown-aware chunking using LangChain
-export async function chunkMarkdown(content: string, filename: string, chunkSize: number = 1000) {
+export async function chunkMarkdown(content: string, filename: string, repoName: string, chunkSize: number = 1000) {
   // LangChain has built-in markdown support that respects headers, code blocks, etc.
   const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
     chunkSize: chunkSize,
@@ -28,6 +28,7 @@ export async function chunkMarkdown(content: string, filename: string, chunkSize
       content: chunkText,
       filename,
       heading: currentHeading,
+      repoName,
     });
   }
 

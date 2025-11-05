@@ -14,12 +14,16 @@ async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
   const filePath = args[1];
+  const repoName = args[2];
 
   if (!command) {
     console.log(`
 Usage:
-  pnpm ingest add <file.md>      # Add markdown file to knowledge base
+  pnpm ingest add <file.md> <repo-name>     # Add markdown file to knowledge base
   pnpm ingest delete <filename>  # Delete file from knowledge base
+
+  Example:
+  pnpm ingest add ./README.md com.sixt.web.public
     `);
     process.exit(1);
   }
@@ -35,9 +39,9 @@ Usage:
     const content = readFileSync(absolutePath, "utf-8");
     const filename = filePath.split("/").pop() || filePath;
 
-    console.log(`📄 Processing: ${filename}`);
+    console.log(`📄 Processing: ${repoName} / ${filename}`);
     
-    const chunks = await chunkMarkdown(content, filename);
+    const chunks = await chunkMarkdown(content, filename, repoName);
     console.log(`📦 Created ${chunks.length} chunks`);
 
     console.log(`🔮 Generating embeddings...`);

@@ -7,12 +7,14 @@ export interface Chunk {
   content: string;
   filename: string;
   heading?: string;
+  repoName?: string;
 }
 
 export interface SearchResult {
   content: string;
   filename: string;
   heading?: string;
+  repoName?: string;
   score: number;
 }
 
@@ -64,6 +66,7 @@ export class QdrantService {
         content: chunk.content,
         filename: chunk.filename,
         heading: chunk.heading || "",
+        repoName: chunk.repoName || "",
       },
     }));
 
@@ -86,6 +89,7 @@ export class QdrantService {
       content: (result.payload?.content as string) || "",
       filename: (result.payload?.filename as string) || "",
       heading: (result.payload?.heading as string) || "",
+      repoName: (result.payload?.repoName as string) || "",
       score: result.score,
     }));
   }

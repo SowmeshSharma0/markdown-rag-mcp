@@ -126,16 +126,16 @@ This compiles the TypeScript code to JavaScript in the `dist/` folder.
 ### 7. Ingest Sample Documents - on which you want to ask questions
 If you have markdown files to ingest:
 ```bash
-pnpm run ingest add <pathName>
+pnpm run ingest add <pathName> <repoName>
 ```
 
 Example:
 ```bash
 # Ingest a single markdown file
-pnpm run ingest add ./sampleInputs/web_README.md
+pnpm run ingest add ./sampleInputs/web_README.md com.sixt.web.public
 
 # Or with a relative path
-pnpm run ingest add path/to/your/document.md
+pnpm run ingest add path/to/your/document.md com.sixt.web.public
 ```
 
 To delete a document:

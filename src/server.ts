@@ -57,6 +57,7 @@ export class MarkdownRAGServer {
           const formattedResults = results.map((r, idx) => ({
             rank: idx + 1,
             score: r.score.toFixed(4),
+            repository: r.repoName,
             source: `${r.filename}${r.heading ? ` > ${r.heading}` : ""}`,
             content: r.content,
           }));
