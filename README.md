@@ -4,6 +4,9 @@ A Model Context Protocol (MCP) server that provides RAG (Retrieval-Augmented Gen
 
 > 📚 **Additional MCP Resources:**
 > - **[Atlassian Rovo MCP Server Setup Guide](./atlassian_rovo_mcp.md)** - Learn how to connect to Atlassian (Jira, Confluence) through MCP
+> 
+> 🎥 **Find the demos here:**
+> - **[Brown Bag Session 1 - Onboarding RAG Demos](https://sx-my.sharepoint.com/:f:/r/personal/sowmesh_sharma-hm_sixt_com/Documents/BrownBagSesh1_OnboardingRAGDemos?csf=1&web=1&e=h10CpE)**
 
 ## Features
 
