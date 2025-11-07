@@ -2,6 +2,9 @@
 
 A Model Context Protocol (MCP) server that provides RAG (Retrieval-Augmented Generation) capabilities for markdown documents. This server uses Qdrant for vector storage, Ollama for embeddings, and integrates seamlessly with Cursor IDE.
 
+> 📚 **Additional MCP Resources:**
+> - **[Atlassian Rovo MCP Server Setup Guide](./atlassian_rovo_mcp.md)** - Learn how to connect to Atlassian (Jira, Confluence) through MCP
+
 ## Features
 
 - 📄 Ingest and index markdown documents
