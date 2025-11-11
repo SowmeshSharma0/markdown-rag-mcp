@@ -452,14 +452,14 @@ Semantic Search Results
 
 The server exposes the following MCP tools:
 
-### `ingest_markdown`
+### `ingest add`
 Ingest markdown documents into the vector database.
 
 **Parameters:**
 - `content` (string): Markdown content to ingest
 - `metadata` (object): Optional metadata (title, source, etc.)
 
-### `search`
+### `search_knowledge`
 Search through ingested documents using semantic similarity.
 
 **Parameters:**
@@ -468,12 +468,7 @@ Search through ingested documents using semantic similarity.
 
 **Returns:** Array of relevant document chunks with scores and metadata
 
-### `list_documents`
-List all ingested documents.
-
-**Returns:** Array of document IDs and metadata
-
-### `delete_document`
+### `ingest delete`
 Delete a specific document from the vector database.
 
 **Parameters:**
