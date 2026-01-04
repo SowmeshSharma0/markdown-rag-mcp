@@ -7,6 +7,7 @@ import { QdrantService } from "./services/qdrant.js";
 import { EmbeddingService } from "./services/embeddings.js";
 import { COLLECTION_NAME, SERVER_NAME, SERVER_VERSION, DEFAULT_QDRANT_URL } from "./constants.js";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { chunkMarkdown } from "./ingest_markdown.js";
 
 export const Logger = {
   log: (...args: any[]) => {},
@@ -84,6 +85,71 @@ export class MarkdownRAGServer {
             content: [{ type: "text", text: `Error: ${error}` }],
           };
         }
+      }
+    );
+
+    this.server.tool(
+      "find_similar_content",
+      "Check for existing similar content before adding/updating knowledge",
+      {
+        content: z.string().describe("The content to check for similarity"),
+        repoName: z.string().optional(),
+        limit: z.number().optional().default(5)
+      },
+      async ({ content, repoName, limit }) => {
+        const embedding = await this.embeddings.embedQuery(content);
+        const results = await this.qdrant.search(embedding, limit, repoName);
+        
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              similarContentFound: results.length,
+              results: results.map(r => ({
+                score: r.score.toFixed(4),
+                file: r.filename,
+                repo: r.repoName,
+                heading: r.heading,
+                contentPreview: r.content.substring(0, 200) + "..."
+              }))
+            }, null, 2)
+          }]
+        };
+      }
+    );
+
+    this.server.tool(
+      "update_knowledge",
+      "Add new content or replace existing content in the knowledge base. ALWAYS use find_similar_content FIRST to check for duplicates before calling this.",
+      {
+        content: z.string().describe("The markdown content to add/update"),
+        filename: z.string().describe("Filename (e.g., 'api-guide.md')"),
+        repoName: z.string().describe("Repository name"),
+        replaceFile: z.boolean().optional().default(false)
+          .describe("If true, deletes existing file before adding new content")
+      },
+      async ({ content, filename, repoName, replaceFile }) => {
+        // Simple: if replaceFile=true, delete old chunks first
+        if (replaceFile) {
+          await this.qdrant.deleteByFilename(filename);
+        }
+        
+        // Chunk, embed, and store
+        const chunks = await chunkMarkdown(content, filename, repoName);
+        const embeddings = await this.embeddings.embed(chunks.map(c => c.content));
+        await this.qdrant.upsertChunks(chunks, embeddings);
+        
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              status: "success",
+              action: replaceFile ? "replaced" : "added",
+              chunks: chunks.length,
+              file: `${repoName}/${filename}`
+            }, null, 2)
+          }]
+        };
       }
     );
   }
